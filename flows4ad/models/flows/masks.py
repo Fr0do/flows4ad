@@ -31,8 +31,7 @@ def make_checkerboard_mask(x, invert_mask: bool = False):
         x: Tensor of shape (B, D)
     '''
     mask = torch.zeros_like(x, dtype=torch.bool)
-    even_ids = range(0, x.shape[-1], 2)
-    mask[..., even_ids] = True
+    mask[..., 0::2] = True
     if invert_mask:
         mask = ~mask
     return mask

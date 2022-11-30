@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from torch.distributions import Normal
 from torch.utils.data import TensorDataset, DataLoader
 
-from flows4ad.models import RealNVP
+from flows4ad.models import RealNVP, Glow
 from flows4ad.losses import RealNVPLoss
 from flows4ad.training import train
 
@@ -61,6 +61,12 @@ def parse_args():
     )
     # Model parameters
     parser.add_argument(
+        '--model', 
+        default='real_nvp', 
+        choices=['real_nvp', 'glow'],
+        type=str,
+    )
+    parser.add_argument(
         '--hidden_dim', 
         default=64, 
         type=int,
@@ -95,6 +101,11 @@ def parse_args():
         '--layer_norm', 
         action='store_true',
         help='Add layer norm to RealNVP shift_scale MLP'
+    )
+    parser.add_argument(
+        '--batch_norm', 
+        action='store_true',
+        help='Add batch norm to Glow'
     )
     # Optimizer params
     parser.add_argument(
@@ -142,7 +153,7 @@ def parse_args():
     parser.add_argument(
         '--save_model', 
         action='store_true',
-        help='Whether to save pruned model'
+        help='Whether to save the flow model'
     )
     parser.add_argument(
         '--plot_histogram', 
@@ -190,17 +201,33 @@ if __name__ == "__main__":
     )
 
     # TODO add different models
-    model = RealNVP(
-        # TODO some embedding dim?
-        d_embed=num_features,
-        d_hidden=args.hidden_dim,
-        num_mlp_layers=args.mlp_layers,
-        num_flow_layers=args.flow_layers,
-        use_channel_wise_splits=args.use_channel_wise_splits,
-        use_checkerboard_splits=args.use_checkerboard_splits,
-        mlp_activation=args.mlp_activation,
-        layer_norm=args.layer_norm
-    ).to(device)
+    if args.model == 'real_nvp':
+        model = RealNVP(
+            # TODO some embedding dim?
+            d_embed=num_features,
+            d_hidden=args.hidden_dim,
+            num_mlp_layers=args.mlp_layers,
+            num_flow_layers=args.flow_layers,
+            use_channel_wise_splits=args.use_channel_wise_splits,
+            use_checkerboard_splits=args.use_checkerboard_splits,
+            mlp_activation=args.mlp_activation,
+            layer_norm=args.layer_norm
+        ).to(device)
+    elif args.model == 'glow':
+        model = Glow(
+            # TODO some embedding dim?
+            d_embed=num_features,
+            d_hidden=args.hidden_dim,
+            num_mlp_layers=args.mlp_layers,
+            num_flow_layers=args.flow_layers,
+            use_channel_wise_splits=args.use_channel_wise_splits,
+            use_checkerboard_splits=args.use_checkerboard_splits,
+            mlp_activation=args.mlp_activation,
+            layer_norm=args.layer_norm,
+            batch_norm=args.batch_norm
+        ).to(device)
+    else:
+        raise NotImplementedError("Unknown model")
     # prior is N(0, 1)
     prior = Normal(loc=0.0, scale=1.0)
     loss_fn = RealNVPLoss(prior)
