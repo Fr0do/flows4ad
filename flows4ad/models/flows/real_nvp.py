@@ -23,7 +23,9 @@ class AffineCouplingLayer(nn.Module):
         invert_mask: bool = False,
         num_mlp_layers: int = 2,
         mlp_activation: str = 'relu',
-        mlp_activation_kwargs: dict = {}
+        mlp_activation_kwargs: dict = {},
+        layer_norm: bool = False,
+        layer_norm_kwargs: dict = {}
     ):
         super().__init__()
         # Save mask info
@@ -36,7 +38,9 @@ class AffineCouplingLayer(nn.Module):
             d_hidden=d_hidden,
             d_out=2 * d_embed,
             activation=mlp_activation,
-            activation_kwargs=mlp_activation_kwargs
+            activation_kwargs=mlp_activation_kwargs,
+            layer_norm=layer_norm,
+            layer_norm_kwargs=layer_norm_kwargs
         )
 
 
@@ -73,7 +77,9 @@ class RealNVP(nn.Module):
         use_checkerboard_splits: bool = True,
         num_mlp_layers: int = 2,
         mlp_activation: str = 'relu',
-        mlp_activation_kwargs: dict = {}
+        mlp_activation_kwargs: dict = {},
+        layer_norm: bool = False,
+        layer_norm_kwargs: dict = {}
     ):
         super().__init__()
 
@@ -100,7 +106,9 @@ class RealNVP(nn.Module):
                     invert_mask=invert_mask,
                     num_mlp_layers=num_mlp_layers,
                     mlp_activation=mlp_activation,
-                    mlp_activation_kwargs=mlp_activation_kwargs
+                    mlp_activation_kwargs=mlp_activation_kwargs,
+                    layer_norm=layer_norm,
+                    layer_norm_kwargs=layer_norm_kwargs
                 )
             )
         self.flow_layers = nn.Sequential(*flow_layers)
