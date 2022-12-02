@@ -1,7 +1,7 @@
 ## Flows4Ad
 ---
 
-Repository for `Anomaly Detection` with Normalizing Flows.
+Repository for Anomaly Detection with Normalizing Flows.
 
 ### Data preparation
 ---
@@ -17,11 +17,11 @@ of the current project:
 ln -s <ADBench_dir/datasets> datasets
 ```
 
-Datasets are expected to be i .npz format with `X` and `y` keys.
+Datasets are expected to be in .npz format with `X` and `y` keys.
 
 ### Experiment running 
 ___
 
-Look at the example in run_train.sh
+Look at the example in `run_train.sh` or `run_train.py`
 
 For RealNVP it is necessary to choose either channel_wise or checkerboard split or both.
