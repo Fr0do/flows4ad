@@ -1,10 +1,8 @@
 ## Flows4Ad
----
 
 Repository for Anomaly Detection with Normalizing Flows.
 
 ### Data preparation
----
 
 Clone ADBench repository (somewhere):
 ```bash
@@ -17,10 +15,9 @@ of the current project:
 ln -s <ADBench_dir/datasets> datasets
 ```
 
-Datasets are expected to be in .npz format with `X` and `y` keys.
+Datasets are expected to be in `.npz` format with `X` and `y` keys.
 
 ### Experiment running 
-___
 
 Look at the example in `run_train.sh` or `run_train.py`
 
