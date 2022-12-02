@@ -21,4 +21,4 @@ Datasets are expected to be in `.npz` format with `X` and `y` keys.
 
 Look at the example in `run_train.sh` or `run_train.py`
 
-For RealNVP it is necessary to choose either channel_wise or checkerboard split or both.
+For RealNVP it is necessary to choose either `channel_wise` or `checkerboard` split or both.
