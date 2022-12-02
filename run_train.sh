@@ -3,21 +3,23 @@
 DATASET=6_cardio
 
 python train.py \
-    --dataset ${DATASET} \
+    \
+    --dataset_name ${DATASET} \
     --data_dir datasets/Classical \
     \
     --batch_size 64 \
     --num_workers 4 \
     \
-    --flow_layers 16 \
-    --mlp_layers 2 \
-    --use_channel_wise_splits \
-    --use_checkerboard_splits \
+    --num_flow_layers 16 \
+    --num_mlp_layers 2 \
     --layer_norm \
     \
-    --lr 1e-3 \
+    --use_channel_wise_splits \
+    --use_checkerboard_splits \
     \
-    --output_dir exp/${DATASET} \
+    --lr 1e-3 \
     --seed 42 \
+    --output_dir results/${DATASET} \
     \
     --plot_histogram \
+    --log_wandb \
