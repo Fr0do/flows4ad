@@ -1,8 +1,9 @@
 import wandb
+import torch
 import numpy as np
 
 from tqdm import tqdm
-from collections import defaultdict
+from sklearn.metrics import roc_auc_score
 
 
 __all__ = ["train_epoch", "eval_epoch", "train"]
@@ -24,6 +25,7 @@ def train_epoch(model, loader, loss_fn, optimizer, log_frequency: int, device='c
     return stats
 
 
+@torch.no_grad()
 def eval_epoch(model, loader, loss_fn, device='cpu'):
     model.eval()
     stats = []
@@ -33,6 +35,33 @@ def eval_epoch(model, loader, loss_fn, device='cpu'):
         loss = loss_fn(z, log_det)
         stats.append(loss.item())
     return stats
+
+
+# TODO add metric computation during training?
+@torch.no_grad()
+def estimate_ad_performance(model, train_loader, val_loader, prior, device='cpu'):
+    y_pred = []
+    y_true = np.concatenate(
+        [np.zeros(len(train_loader.dataset)), np.ones(len(val_loader.dataset))],
+        axis=0
+    )
+    # temporarily do not drop last
+    template = dict(train_loader.__dict__)
+    # drop attributes that will be auto-initialized
+    to_drop = [k for k in template if k.startswith("_") or k == "batch_sampler"]
+    for item in to_drop:
+        template.pop(item)
+    template['drop_last'] = False
+    train_loader_copy = type(train_loader)(**template)
+    for loader in [train_loader_copy, val_loader]:
+        for i, (x,) in enumerate(loader):
+            x = x.to(device)
+            z, log_det = model(x, reverse=True)
+            # high log_prob shoud correspond to class 0, low to 1
+            log_prob = (prior.log_prob(z) + log_det).sum(dim=-1)
+            y_pred.append(-log_prob.cpu().numpy())
+    y_pred = np.concatenate(y_pred, axis=0)
+    return roc_auc_score(y_true, y_pred)
 
 
 def train(
@@ -65,4 +94,15 @@ def train(
         # log to wandb
         if log_wandb:
             wandb.log({'train_loss': np.mean(train_loss), 'test_loss': np.mean(test_loss)}, step=epoch)
-    return train_losses, test_losses
+    
+    auroc = estimate_ad_performance(model, train_loader, test_loader, loss_fn.prior, device=device)
+    print(f'AUROC on AD Detection {auroc:.3f}')
+    if log_wandb:
+        wandb.log({'AUROC': auroc})
+    
+    # compute final metrics
+    return {
+        'train_loss': train_losses, 
+        'test_loss': test_losses,
+        'AUROC': auroc
+    }

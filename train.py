@@ -1,7 +1,27 @@
-from data import load_dataset, process_dataset, get_datasets, get_dataloaders
-
-from configuration import get_experiment_config, get_device, set_random_state, set_experiment_logger, update_experiment_config_using_dataset, update_experiment_config_using_model
-from experiment import get_model, get_prior, get_loss, get_optimizer, get_scheduler, setup_before_experiment, run_experiment, teardown_after_experiment
+from data import (
+    load_dataset, 
+    process_dataset, 
+    get_datasets, 
+    get_dataloaders
+)
+from configuration import (
+    get_experiment_config, 
+    get_device, 
+    set_random_state, 
+    set_experiment_logger, 
+    update_experiment_config_using_dataset, 
+    update_experiment_config_using_model
+)
+from experiment import (
+    get_model, 
+    get_prior, 
+    get_loss, 
+    get_optimizer,
+    get_scheduler, 
+    setup_before_experiment, 
+    run_experiment, 
+    teardown_after_experiment
+)
 
 
 if __name__ == "__main__":
@@ -9,7 +29,8 @@ if __name__ == "__main__":
     device = get_device(config)
 
     set_random_state(config)
-    set_experiment_logger(config)
+    if config.log_wandb:
+        set_experiment_logger(config)
 
     dataset = load_dataset(config)
     dataset, scaler = process_dataset(dataset, config)

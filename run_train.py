@@ -1,15 +1,14 @@
-import os
-import shutil
 import subprocess
 
-dataset_name = '6_cardio'
+dataset_name = '15_Hepatitis'
 data_dir = 'datasets/Classical'
 
-batch_size = 64
+batch_size = 32
 num_workers = 4
 
 num_flow_layers = 16
 num_mlp_layers = 2
+num_epochs = 50
 
 lr = 1e-3
 seed = 42
@@ -24,6 +23,8 @@ subprocess.call([
     
     '--batch_size', str(batch_size),
     '--num_workers', str(num_workers),
+
+    '--num_epochs', str(num_epochs),
     
     '--num_flow_layers', str(num_flow_layers),
     '--num_mlp_layers', str(num_mlp_layers),
@@ -37,5 +38,5 @@ subprocess.call([
     '--output_dir', experiment_dir,
 
     '--plot_histogram',
-    '--log_wandb',
+    '--log_wandb'
 ])
