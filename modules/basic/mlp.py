@@ -1,11 +1,7 @@
 import torch.nn as nn
 
 from typing import Union
-
-
-activation_to_class_name = {
-    'relu': nn.ReLU,
-}
+from .utils import get_activation
 
 
 class MultiLayerPerceptron(nn.Module):
@@ -25,7 +21,7 @@ class MultiLayerPerceptron(nn.Module):
         assert num_layers >= 2
 
         if isinstance(activation, str):
-            activation = activation_to_class_name[activation](**activation_kwargs)
+            activation =get_activation(activation)(**activation_kwargs)
 
         layers = []
         for layer_id in range(num_layers):

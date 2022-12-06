@@ -61,6 +61,8 @@ def set_experiment_logger(config):
 
 
 def get_device(config):
+    if not hasattr(config.procedure_config, 'gpu_index'):
+        config.procedure_config.gpu_index = 0
     gpu_index = config.procedure_config.gpu_index
     device = torch.device(f"cuda:{gpu_index}" if torch.cuda.is_available() else "cpu")
     return device
