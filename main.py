@@ -1,3 +1,6 @@
+import sys
+sys.path.append('..')
+
 from data import (
     load_dataset, 
     process_dataset, 
@@ -6,6 +9,7 @@ from data import (
 )
 from configuration import (
     get_experiment_config, 
+    sync_experiment_config,
     get_device, 
     set_random_state, 
     set_experiment_logger, 
@@ -26,11 +30,11 @@ from experiment import (
 
 if __name__ == "__main__":
     config = get_experiment_config()
+    config = sync_experiment_config(config)
     device = get_device(config)
 
     set_random_state(config)
-    if config.log_wandb:
-        set_experiment_logger(config)
+    set_experiment_logger(config)
 
     dataset = load_dataset(config)
     dataset, scaler = process_dataset(dataset, config)
@@ -40,7 +44,7 @@ if __name__ == "__main__":
     dataloaders = get_dataloaders(datasets, config)
 
     model = get_model(config)
-    config = update_experiment_config_using_model(config, dataset)
+    config = update_experiment_config_using_model(config, model)
     model.to(device)
     
     prior = get_prior(config)
@@ -53,4 +57,4 @@ if __name__ == "__main__":
     
     setup_before_experiment(environment, config)
     results = run_experiment(environment, config)
-    teardown_after_experiment(environment, config)
+    teardown_after_experiment(results, environment, config)
