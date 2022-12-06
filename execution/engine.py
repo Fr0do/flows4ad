@@ -96,7 +96,7 @@ def train(
             wandb.log({'train_loss': np.mean(train_loss), 'test_loss': np.mean(test_loss)}, step=epoch)
     
     auroc = estimate_ad_performance(model, train_loader, test_loader, loss_fn.prior, device=device)
-    print(f'AUROC on AD Detection {auroc:.3f}')
+    print(f'AUROC in anomaly detection: {auroc:.3f}')
     if log_wandb:
         wandb.log({'AUROC': auroc})
     

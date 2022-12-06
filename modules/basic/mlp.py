@@ -3,12 +3,12 @@ import torch.nn as nn
 from typing import Union
 
 
-__all__ = [
-    "MLP"
-]
+activation_to_class_name = {
+    'relu': nn.ReLU,
+}
 
 
-class MLP(nn.Module):
+class MultiLayerPerceptron(nn.Module):
 
     def __init__(
         self, 
@@ -16,7 +16,7 @@ class MLP(nn.Module):
         d_in: int, 
         d_hidden: int, 
         d_out: int,
-        activation: Union[nn.Module, str] = 'ReLU',
+        activation: Union[nn.Module, str] = 'relu',
         activation_kwargs: dict = {},
         layer_norm: bool = False,
         layer_norm_kwargs: dict = {}
@@ -25,7 +25,7 @@ class MLP(nn.Module):
         assert num_layers >= 2
 
         if isinstance(activation, str):
-            activation = getattr(nn, activation)(**activation_kwargs)
+            activation = activation_to_class_name[activation](**activation_kwargs)
 
         layers = []
         for layer_id in range(num_layers):

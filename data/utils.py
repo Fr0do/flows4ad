@@ -14,7 +14,9 @@ DOMAIN_NAME_TO_INDEX = {
 
 
 def load_dataset(config):
-    dataset_path = os.path.join(config.data_dir, f'{config.dataset_name}.npz')
+    dataset_filename = f'{config.dataset_config.dataset_name}.npz'
+    dataset_path = os.path.join(config.dataset_config.data_root, dataset_filename)
+    
     data = np.load(dataset_path)
     features, targets = data['X'], data['y']
 
@@ -48,8 +50,8 @@ def get_dataloaders(datasets, config=None):
     dataloaders = {
         domain_name: D.DataLoader(
             dataset, 
-            batch_size=config.batch_size, 
-            num_workers=config.num_workers, 
+            batch_size=config.optimisation_config.batch_size, 
+            num_workers=config.optimisation_config.num_workers, 
             shuffle=(domain_name == 'in'), 
             drop_last=(domain_name == 'in')
         ) for domain_name, dataset in datasets.items()

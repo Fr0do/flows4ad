@@ -19,6 +19,6 @@ Datasets are expected to be in `.npz` format with `X` and `y` keys.
 
 ### Experiment running 
 
-Look at the example in `run_train.sh` or `run_train.py`
+Look at the example in `run_main.py`. In order to change some parameters of experiment, please refer to the `.yaml` config file.
 
 For RealNVP it is necessary to choose either `channel_wise` or `checkerboard` split or both.
