@@ -4,9 +4,21 @@ import numpy as np
 
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
+from .utils import make_stepwise_generator, make_drop_last_false_loader
 
 
-__all__ = ["train_epoch", "eval_epoch", "train"]
+__all__ = ["train_step", "train_epoch", "eval_epoch", "train"]
+
+
+def train_step(model, x, loss_fn, optimizer, device='cpu'):
+    model.train()
+    x = x.to(device)
+    z, log_det = model(x, reverse=True)
+    loss = loss_fn(z, log_det)
+    optimizer.zero_grad(set_to_none=True)
+    loss.backward()
+    optimizer.step()
+    return loss.item()
 
 
 def train_epoch(model, loader, loss_fn, optimizer, log_frequency: int, device='cpu'):
@@ -34,7 +46,7 @@ def eval_epoch(model, loader, loss_fn, device='cpu'):
         z, log_det = model(x, reverse=True)
         loss = loss_fn(z, log_det)
         stats.append(loss.item())
-    return stats
+    return np.mean(stats)
 
 
 # TODO add metric computation during training?
@@ -45,14 +57,7 @@ def estimate_ad_performance(model, train_loader, val_loader, prior, device='cpu'
         [np.zeros(len(train_loader.dataset)), np.ones(len(val_loader.dataset))],
         axis=0
     )
-    # temporarily do not drop last
-    template = dict(train_loader.__dict__)
-    # drop attributes that will be auto-initialized
-    to_drop = [k for k in template if k.startswith("_") or k == "batch_sampler"]
-    for item in to_drop:
-        template.pop(item)
-    template['drop_last'] = False
-    train_loader_copy = type(train_loader)(**template)
+    train_loader_copy = make_drop_last_false_loader(train_loader)
     for loader in [train_loader_copy, val_loader]:
         for i, (x,) in enumerate(loader):
             x = x.to(device)
@@ -68,7 +73,7 @@ def train(
     model,
     train_loader,
     test_loader,
-    epochs: int,
+    steps: int,
     optimizer,
     loss_fn, 
     scheduler = None,
@@ -78,22 +83,32 @@ def train(
     tqdm_bar: bool = False
 ):
     train_losses, test_losses = [], []
-    progress_bar = tqdm(range(epochs)) if tqdm_bar else range(epochs)
-    for epoch in progress_bar:
-        train_loss = train_epoch(model, train_loader, loss_fn, optimizer, log_frequency, device)
-        test_loss = eval_epoch(model, test_loader, loss_fn, device)
+    progress_bar = tqdm(range(steps)) if tqdm_bar else range(steps)
+    # make step-wise loader
+    train_generator = make_stepwise_generator(train_loader, steps)
+    # compute running train loss
+    running_train_losses = []
+
+    for step in progress_bar:
+        # make train step
+        (x,) = next(iter(train_generator))
+        train_loss = train_step(model, x, loss_fn, optimizer, device)
         # update loss history
-        train_losses += train_loss
-        test_losses += test_loss
-        print('-' * 10)
-        print(f'Epoch [{epoch:>2}/{epochs:>2}] | Train loss: {np.mean(train_loss):.3f} Test loss: {np.mean(test_loss):.3f}')
-        print('-' * 10)
+        train_losses += [train_loss]
+        running_train_losses += [train_loss]
+        if step % log_frequency == 0:
+            test_loss = eval_epoch(model, test_loader, loss_fn, device)
+            test_losses += test_loss
+            train_loss_avg = np.mean(running_train_losses)
+            print('-' * 10)
+            print(f'Step [{step:>2}/{steps:>2}] | Train loss: {train_loss_avg:.3f} Test loss: {test_loss:.3f}')
+            print('-' * 10)
+            # log to wandb
+            if log_wandb:
+                wandb.log({'train_loss': train_loss_avg, 'test_loss': test_loss}, step=step)
         # make scheduler step (optional)
         if scheduler:
             scheduler.step()
-        # log to wandb
-        if log_wandb:
-            wandb.log({'train_loss': np.mean(train_loss), 'test_loss': np.mean(test_loss)}, step=epoch)
     
     auroc = estimate_ad_performance(model, train_loader, test_loader, loss_fn.prior, device=device)
     print(f'AUROC in anomaly detection: {auroc:.3f}')

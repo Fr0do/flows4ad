@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 from .flow import GeneralFlow
@@ -7,7 +6,7 @@ from .layers import AffineCouplingLayer
 from .masks import *
 from .invertible import InvertibleLinear
 
-from flows4ad.modules.basic import MovingBatchNorm1d
+from ..basic import MovingBatchNorm1d
 
 
 class Glow(GeneralFlow):

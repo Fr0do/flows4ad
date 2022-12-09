@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 
-from flows4ad.modules.embedding import get_embedding_instace
-from flows4ad.modules.flow import get_flow_instace
+from ..embedding import get_embedding_instace
+from ..flow import get_flow_instace
 
 
 class GeneralModel(nn.Module):
+    
     def __init__(self, model_config):
         super().__init__()
         self.config = model_config

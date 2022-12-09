@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 
 class PeriodicEmbedding(nn.Module):
+    
     def get_embedding_size(embedding_config):
         return 2 * embedding_config.num_features * embedding_config.num_dimensions
 

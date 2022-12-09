@@ -1,5 +1,6 @@
 import os
 import argparse
+from attr import has
 import yaml
 
 import torch
@@ -75,11 +76,17 @@ def set_random_state(config):
 
 
 def sync_experiment_config(config):
-    experiment_name = '-'.join([
-        f'dataset:{config.dataset_config.dataset_name}',
-        f'flow:{config.model_config.flow_config.flow_name}',
-        f'embedding:{config.model_config.embedding_config.embedding_name}',
-    ])
+    if hasattr(config, 'model_config'):
+        experiment_name = '-'.join([
+            f'dataset:{config.dataset_config.dataset_name}',
+            f'flow:{config.model_config.flow_config.flow_name}',
+            f'embedding:{config.model_config.embedding_config.embedding_name}',
+        ])
+    else:
+        experiment_name = '-'.join([
+            f'dataset:{config.dataset_config.dataset_name}',
+            f'VAE training'
+        ])
     config.procedure_config.experiment_name = experiment_name
     config.procedure_config.output_dir = f'results/{experiment_name}'
     return config
@@ -87,10 +94,16 @@ def sync_experiment_config(config):
 
 def update_experiment_config_using_dataset(config, dataset):
     features, targets = dataset
-    config.model_config.embedding_config.num_features = features.shape[-1]
-
-    embedding_class = get_embedding_class(config.model_config.embedding_config.embedding_name)
-    config.model_config.flow_config.num_features = embedding_class.get_embedding_size(config.model_config.embedding_config)
+    if hasattr(config, 'model_config'):
+        config.model_config.embedding_config.num_features = features.shape[-1]
+        embedding_class = get_embedding_class(config.model_config.embedding_config.embedding_name)
+        config.model_config.flow_config.num_features = embedding_class.get_embedding_size(
+            config.model_config.embedding_config
+        )
+    elif hasattr(config, 'vae_config'):
+        config.vae_config.d_in = features.shape[-1]
+    else:
+        raise RuntimeError("No flow model and vae config. What is the expected outcome? ")
     # maybe something else
     return config
 

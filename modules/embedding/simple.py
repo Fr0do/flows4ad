@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 
 class SimpleEmbedding(nn.Module):
+    
     def get_embedding_size(embedding_config):
         return embedding_config.num_features * embedding_config.num_dimensions
 

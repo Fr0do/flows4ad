@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from .masks import *
-from flows4ad.modules.basic import MultiLayerPerceptron
+from ..basic import MultiLayerPerceptron
 
 
 class AffineCouplingLayer(nn.Module):
