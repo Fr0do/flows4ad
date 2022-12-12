@@ -12,7 +12,8 @@ class InvertibleLinear(nn.Module):
         super(InvertibleLinear, self).__init__()
 
         weight_init, _ = torch.linalg.qr(torch.randn(d_embed, d_embed))
-        P, L, U = torch.lu_unpack(*torch.linalg.lu_factor(weight_init))
+        # P, L, U = torch.lu_unpack(*torch.linalg.lu_factor(weight_init))
+        P, L, U = torch.lu_unpack(*torch.lu(weight_init))
         s = torch.diag(U)
         sign_s = torch.sign(s)
         log_s = torch.log(torch.abs(s))

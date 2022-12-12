@@ -1,5 +1,5 @@
 from .embedding import *
 from .flow import *
-from .model import *
+from .detector import *
 from .loss import *
-from .vae import *
+from .encoder import *

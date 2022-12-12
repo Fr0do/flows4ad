@@ -83,7 +83,7 @@ def train(
     tqdm_bar: bool = False
 ):
     train_losses, test_losses = [], []
-    progress_bar = tqdm(range(steps)) if tqdm_bar else range(steps)
+    progress_bar = tqdm(range(1, steps + 1)) if tqdm_bar else range(1, steps + 1)
     # make step-wise loader
     train_generator = make_stepwise_generator(train_loader, steps)
     # compute running train loss

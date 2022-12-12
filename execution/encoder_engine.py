@@ -6,10 +6,10 @@ from tqdm import tqdm
 from .utils import make_stepwise_generator, make_drop_last_false_loader
 
 
-__all__ = ["train_vae_step", "train_vae_epoch", "eval_vae_epoch", "train_vae"]
+__all__ = ["train_step", "train_epoch", "eval_epoch", "train"]
 
 
-def train_vae_step(model, x, loss_fn, optimizer, device='cpu'):
+def train_step(model, x, loss_fn, optimizer, device='cpu'):
     model.train()
     x = x.to(device)
     x_recon, mu, log_sigma = model(x)
@@ -21,7 +21,7 @@ def train_vae_step(model, x, loss_fn, optimizer, device='cpu'):
 
 
 @torch.no_grad()
-def eval_vae_epoch(model, loader, loss_fn, device='cpu'):
+def eval_epoch(model, loader, loss_fn, device='cpu'):
     model.eval()
     stats = []
     for i, (x,) in enumerate(loader):
@@ -32,7 +32,7 @@ def eval_vae_epoch(model, loader, loss_fn, device='cpu'):
     return np.mean(stats)
 
 
-def train_vae(
+def train(
     model,
     train_loader,
     test_loader,
@@ -46,7 +46,7 @@ def train_vae(
     tqdm_bar: bool = False
 ):
     train_losses, test_losses = [], []
-    progress_bar = tqdm(range(steps)) if tqdm_bar else range(steps)
+    progress_bar = tqdm(range(1, steps + 1)) if tqdm_bar else range(1, steps + 1)
     # make step-wise loader
     train_generator = make_stepwise_generator(train_loader, steps)
     # compute running train loss
@@ -55,12 +55,12 @@ def train_vae(
     for step in progress_bar:
         # make train step
         (x,) = next(iter(train_generator))
-        train_loss = train_vae_step(model, x, loss_fn, optimizer, device)
+        train_loss = train_step(model, x, loss_fn, optimizer, device)
         # update loss history
         train_losses += [train_loss]
         running_train_losses += [train_loss]
         if step % log_frequency == 0:
-            test_loss = eval_vae_epoch(model, test_loader, loss_fn, device)
+            test_loss = eval_epoch(model, test_loader, loss_fn, device)
             test_losses += test_loss
             train_loss_avg = np.mean(running_train_losses)
             print('-' * 10)
@@ -85,7 +85,7 @@ def save_latents(
     model, 
     train_loader, 
     test_loader,
-    saved_latents_path: str,
+    latents_path: str,
     device: str = 'cpu'
 ):  
     labels = np.concatenate(
@@ -102,4 +102,4 @@ def save_latents(
             z, _ = model.encode(x)
             latents.append(z.cpu().numpy())
     latents = np.concatenate(latents, axis=0)
-    np.savez(saved_latents_path, X=latents, y=labels)
+    np.savez(latents_path, X=latents, y=labels)

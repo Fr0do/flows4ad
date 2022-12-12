@@ -1,11 +1,18 @@
-from .density import NormalizingFlowLoss
+from .density import NFLoss
 from .vae import VAELoss
 
 
-def get_loss(prior, config=None):
-    loss = NormalizingFlowLoss(prior)
+def get_detector_loss(prior, config=None):
+    loss = NFLoss(prior)
     return loss
 
-def get_vae_loss(config=None):
-    loss = VAELoss()
-    return loss
+
+encoder_name_to_loss_class = {
+    'vae': VAELoss
+}
+
+
+def get_encoder_loss(config):
+    loss_class = encoder_name_to_loss_class[config.encoder_config.encoder_name]
+    loss_instance = loss_class()
+    return loss_instance

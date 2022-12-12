@@ -2,11 +2,11 @@ import torch.nn as nn
 
 
 __all__ = [
-    "NormalizingFlowLoss"
+    "NFLoss"
 ]
 
 
-class NormalizingFlowLoss(nn.Module):
+class NFLoss(nn.Module):
     """Get the NLL loss for a RealNVP model.
     Args:
         prior 
@@ -14,7 +14,7 @@ class NormalizingFlowLoss(nn.Module):
         Equation (3) in the RealNVP paper: https://arxiv.org/abs/1605.08803
     """
     def __init__(self, prior):
-        super(NormalizingFlowLoss, self).__init__()
+        super(NFLoss, self).__init__()
         self.prior = prior
 
     def forward(self, z, log_det):

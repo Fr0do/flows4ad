@@ -161,4 +161,5 @@ cython_debug/
 
 *datasets
 *wandb
-*results
+*experiments
+*_meta_*

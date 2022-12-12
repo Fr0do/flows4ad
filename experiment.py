@@ -3,9 +3,9 @@ import os
 import torch
 import torch.optim as optim
 
-from execution import engine, engine_vae
+from execution import detector_engine, encoder_engine
 from modules import *
-from modules.vae import *
+
 from visualisation import (
     visualise_prediction_histograms, 
     set_visualisation_options, 
@@ -50,20 +50,20 @@ def setup_before_experiment(environment, config):
     model, prior, loss, device, dataloaders, optimizer, scheduler = environment
     # maybe something else
     
-    output_dir =  getattr(config.procedure_config, 'output_dir')
-    if output_dir:
-        os.makedirs(config.procedure_config.output_dir, exist_ok=True)
+    output_dir = config.procedure_config.output_dir
+    if output_dir is not None:
+        os.makedirs(output_dir, exist_ok=True)
 
-    save_latents_dir = getattr(config.procedure_config, 'save_latents_dir', None)
-    if save_latents_dir:
-        assert getattr(config, 'vae_config', None) is not None
-        os.makedirs(save_latents_dir, exist_ok=True)
+    latents_root = getattr(config.procedure_config, 'latents_root', None)
+    if latents_root is not None:
+        assert getattr(config, 'encoder_config', None) is not None
+        os.makedirs(latents_root, exist_ok=True)
         
 
-def run_experiment(environment, config):
+def run_detector_experiment(environment, config):
     model, prior, loss, device, dataloaders, optimizer, scheduler = environment
 
-    results = engine.train(
+    results = detector_engine.train(
         model, dataloaders['in'], dataloaders['out'],
         steps=config.optimisation_config.num_steps,
         optimizer=optimizer,
@@ -78,10 +78,10 @@ def run_experiment(environment, config):
 
 
 # TODO naming is awful, I undersantd, I do not have better idea how to name it
-def run_vae_training(environment, config):
+def run_encoder_experiment(environment, config):
     model, prior, loss, device, dataloaders, optimizer, scheduler = environment
 
-    results = engine_vae.train_vae(
+    results = encoder_engine.train(
         model, dataloaders['in'], dataloaders['out'],
         steps=config.optimisation_config.num_steps,
         optimizer=optimizer,
@@ -92,15 +92,16 @@ def run_vae_training(environment, config):
         log_wandb=config.procedure_config.log_wandb
     )
 
-    if hasattr(config.procedure_config, 'save_latents_dir'):
-        engine_vae.save_latents(
+    if hasattr(config.procedure_config, 'latents_root'):
+        latents_path = os.path.join(
+            config.procedure_config.latents_root, 
+            f'{config.dataset_config.dataset_name}.npz',
+        )
+        encoder_engine.save_latents(
             model,
             dataloaders['in'], 
             dataloaders['out'],
-            os.path.join(
-                config.procedure_config.save_latents_dir, 
-                f'{config.dataset_config.dataset_name}.npz',
-            ),
+            latents_path,
             device=device
         )
 
