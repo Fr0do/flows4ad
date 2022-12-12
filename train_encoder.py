@@ -17,13 +17,12 @@ from configuration import (
     update_experiment_config_using_model
 )
 from experiment import (
-    get_model, 
-    get_prior, 
-    get_loss, 
+    get_encoder_model, 
+    get_encoder_loss, 
     get_optimizer,
     get_scheduler, 
     setup_before_experiment, 
-    run_experiment, 
+    run_encoder_experiment, 
     teardown_after_experiment
 )
 
@@ -43,18 +42,17 @@ if __name__ == "__main__":
     datasets = get_datasets(dataset, config)
     dataloaders = get_dataloaders(datasets, config)
 
-    model = get_model(config)
+    model = get_encoder_model(config)
     config = update_experiment_config_using_model(config, model)
     model.to(device)
     
-    prior = get_prior(config)
-    loss = get_loss(prior, config)
+    loss = get_encoder_loss(config)
     
     optimizer = get_optimizer(model, config)
     scheduler = get_scheduler(optimizer, config)
     
-    environment = model, prior, loss, device, dataloaders, optimizer, scheduler
+    environment = model, None, loss, device, dataloaders, optimizer, scheduler
     
     setup_before_experiment(environment, config)
-    results = run_experiment(environment, config)
+    results = run_encoder_experiment(environment, config)
     teardown_after_experiment(results, environment, config)

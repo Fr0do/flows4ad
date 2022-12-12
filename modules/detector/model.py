@@ -5,11 +5,11 @@ from ..embedding import get_embedding_instace
 from ..flow import get_flow_instace
 
 
-class GeneralModel(nn.Module):
+class FlowDetector(nn.Module):
     
-    def __init__(self, model_config):
+    def __init__(self, detector_config):
         super().__init__()
-        self.config = model_config
+        self.config = detector_config
 
         self.embedding = get_embedding_instace(self.config.embedding_config)
         self.flow = get_flow_instace(self.config.flow_config)

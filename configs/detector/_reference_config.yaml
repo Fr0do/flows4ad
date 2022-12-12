@@ -1,12 +1,11 @@
 procedure_config:
-
-  experiment_name: 
+  experiment_name:
   random_seed: 42
-  gpu_index: 0
-  
+  gpu_index: 5
+
   log_wandb: False
   log_frequency: 10
-  output_dir: exp
+  output_dir: experiments/detector
 
   save_model: False
   save_metrics: True
@@ -14,44 +13,41 @@ procedure_config:
 
 
 dataset_config:
-  dataset_name: 45_wine
   data_root: datasets/Classical
+  dataset_name: 16_http
 
 
-model_config:
+detector_config:
 
   embedding_config:
     embedding_name: none
-    num_features: 
-    num_dimensions: 8
+    num_features:
 
+    num_dimensions: 8
     variance: 1.0
-    initialisation: normal
     trainable: True
 
   flow_config:
     flow_name: real_nvp
-    hidden_dim: 128
     num_features:
-
+    hidden_dim: 32
+    
     num_flow_layers: 16
     num_mlp_layers: 2
-
-    use_channel_wise_splits: True
-    use_checkerboard_splits: True
-
-    mlp_activation: relu
     
     use_layer_norm: True
     use_batch_norm: True
 
+    use_channel_wise_splits: True
+    use_checkerboard_splits: True
+
 
 optimisation_config:
-
   lr: 0.001
   min_lr: 0.00001
   weight_decay: 0.0
-
-  num_steps: 800
-  batch_size: 16
+  
+  num_steps: 200
   num_workers: 4
+  batch_size: 32
+  

@@ -1,6 +1,5 @@
 import os
 import argparse
-from attr import has
 import yaml
 
 import torch
@@ -8,10 +7,11 @@ import numpy as np
 
 import wandb
 
+from flows4ad.modules.detector import *
+from flows4ad.modules.encoder import *
+
 from flows4ad.modules.basic import *
 from flows4ad.modules.embedding import *
-from flows4ad.modules.flow import *
-from flows4ad.modules.model import *
 from flows4ad.modules.loss import *
 
 
@@ -32,10 +32,23 @@ class RecursiveNamespace():
                 setattr(self, key, value)
 
 
+def convert_namespace_to_dict(namespace):
+    return {
+        key: convert_namespace_to_dict(value) 
+        if type(value) == RecursiveNamespace else value
+        for key, value in namespace.__dict__.items()
+    }
+
+
 def read_config(path):
     with open(path, 'r') as stream:
         config = yaml.safe_load(stream)
     return config
+
+
+def save_config(config, path):
+    with open(path, 'w', encoding='utf8') as outfile:
+        yaml.dump(config, outfile, default_flow_style=False, allow_unicode=True)
 
 
 def get_experiment_config():
@@ -76,34 +89,40 @@ def set_random_state(config):
 
 
 def sync_experiment_config(config):
-    if hasattr(config, 'model_config'):
+    if hasattr(config, 'detector_config'):
         experiment_name = '-'.join([
             f'dataset:{config.dataset_config.dataset_name}',
-            f'flow:{config.model_config.flow_config.flow_name}',
-            f'embedding:{config.model_config.embedding_config.embedding_name}',
+            f'flow:{config.detector_config.flow_config.flow_name}',
+            f'embedding:{config.detector_config.embedding_config.embedding_name}',
+            f'hidden:{config.detector_config.flow_config.hidden_dim}',
+        ])
+    elif hasattr(config, 'encoder_config'):
+        experiment_name = '-'.join([
+            f'dataset:{config.dataset_config.dataset_name}',
+            f'encoder:{config.encoder_config.encoder_type}',
+            f'model:{config.encoder_config.encoder_name}',
+            f'hidden:{config.encoder_config.hidden_dim}',
         ])
     else:
-        experiment_name = '-'.join([
-            f'dataset:{config.dataset_config.dataset_name}',
-            f'VAE training'
-        ])
+        raise RuntimeError("No detector or encoder config. What is the expected outcome?")
+    
     config.procedure_config.experiment_name = experiment_name
-    config.procedure_config.output_dir = f'results/{experiment_name}'
+    config.procedure_config.output_dir = f'{config.procedure_config.output_dir}/{experiment_name}'
     return config
 
 
 def update_experiment_config_using_dataset(config, dataset):
     features, targets = dataset
-    if hasattr(config, 'model_config'):
-        config.model_config.embedding_config.num_features = features.shape[-1]
-        embedding_class = get_embedding_class(config.model_config.embedding_config.embedding_name)
-        config.model_config.flow_config.num_features = embedding_class.get_embedding_size(
-            config.model_config.embedding_config
+    if hasattr(config, 'detector_config'):
+        config.detector_config.embedding_config.num_features = features.shape[-1]
+        embedding_class = get_embedding_class(config.detector_config.embedding_config.embedding_name)
+        config.detector_config.flow_config.num_features = embedding_class.get_embedding_size(
+            config.detector_config.embedding_config
         )
-    elif hasattr(config, 'vae_config'):
-        config.vae_config.d_in = features.shape[-1]
+    elif hasattr(config, 'encoder_config'):
+        config.encoder_config.num_features = features.shape[-1]
     else:
-        raise RuntimeError("No flow model and vae config. What is the expected outcome? ")
+        raise RuntimeError("No detector or encoder config. What is the expected outcome?")
     # maybe something else
     return config
 
@@ -112,7 +131,3 @@ def update_experiment_config_using_model(config, model):
     # maybe something else
     return config
 
-
-def create_output_dir(config):
-    if config.procedure_config.output_dir:
-        os.makedirs(config.procedure_config.output_dir, exist_ok=True)

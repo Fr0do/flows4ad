@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 
-from typing import Union
-from ..basic.mlp import MultiLayerPerceptron
+from ..basic import MultiLayerPerceptron
 
 
 __all__ = ["VariationalAutoEncoder"]
@@ -10,19 +9,24 @@ __all__ = ["VariationalAutoEncoder"]
 
 class VariationalAutoEncoder(nn.Module):
 
-    def __init__(
-        self,
-        num_encoder_layers: int,
-        num_decoder_layers: int,
-        d_in: int,
-        d_hidden: int, 
-        d_latent: int,
-        activation: Union[nn.Module, str] = 'relu',
-        activation_kwargs: dict = {},
-        layer_norm: bool = False,
-        layer_norm_kwargs: dict = {}
-    ) -> None:
+    def __init__(self, encoder_config) -> None:
         super().__init__()
+        self.config = encoder_config
+        self.init_layers()
+
+    def init_layers(self):
+        num_encoder_layers = self.config.num_encoder_layers
+        num_decoder_layers = self.config.num_decoder_layers
+        
+        d_in = self.config.num_features
+        d_hidden = self.config.hidden_dim
+        d_latent = self.config.latent_dim
+
+        activation = getattr(self.config, 'activation', 'relu')
+        activation_kwargs = getattr(self.config, 'activation_kwargs', {})
+        
+        layer_norm = getattr(self.config, 'use_layer_norm', False)
+        layer_norm_kwargs = getattr(self.config, 'layer_norm_kwargs', {})
 
         self.encoder = MultiLayerPerceptron(
             num_encoder_layers, 
@@ -47,20 +51,6 @@ class VariationalAutoEncoder(nn.Module):
             activation_kwargs,
             layer_norm,
             layer_norm_kwargs
-        )
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(
-            config.num_encoder_layers,
-            config.num_decoder_layers,
-            config.d_in,
-            config.d_hidden,
-            config.d_latent,
-            getattr(config, 'activation', 'relu'),
-            getattr(config, 'activation_kwargs', {}),
-            getattr(config, 'layer_norm', False),
-            getattr(config, 'layer_norm_kwargs', {})
         )
 
     def encode(self, x):

@@ -19,8 +19,8 @@ class SimpleEmbedding(nn.Module):
         num_dimensions = self.config.num_dimensions
         variance = self.config.variance
 
-        initialisation = self.config.initialisation
-        trainable = self.config.trainable
+        initialisation = getattr(self.config, 'initialisation', 'normal')
+        trainable = getattr(self.config, 'trainable', True)
         
         if initialisation == 'normal':
             coefficient_values = torch.normal(0.0, variance, (num_features, num_dimensions))

@@ -30,13 +30,14 @@ class Glow(GeneralFlow):
         use_channel_wise_splits = self.config.use_channel_wise_splits
         use_checkerboard_splits = self.config.use_checkerboard_splits
         
-        mlp_activation = self.config.mlp_activation
-        use_layer_norm = self.config.use_layer_norm
-        use_batch_norm = self.config.use_batch_norm
+        activation = getattr(self.config, 'activation', 'relu')
+        activation_kwargs = getattr(self.config, 'activation_kwargs', {})
+        
+        use_layer_norm = getattr(self.config, 'use_layer_norm', True)
+        use_batch_norm = getattr(self.config, 'use_batch_norm', True)
 
-        mlp_activation_kwargs = {}
-        layer_norm_kwargs = {}
-        batch_norm_kwargs = {}
+        layer_norm_kwargs = getattr(self.config, 'layer_norm_kwargs', {})
+        batch_norm_kwargs = getattr(self.config, 'batch_norm_kwargs', {})
 
 
         assert num_flow_layers % 2 == 0, \
@@ -63,8 +64,8 @@ class Glow(GeneralFlow):
                     mask_type=mask_type,
                     invert_mask=invert_mask,
                     num_mlp_layers=num_mlp_layers,
-                    mlp_activation=mlp_activation,
-                    mlp_activation_kwargs=mlp_activation_kwargs,
+                    mlp_activation=activation,
+                    mlp_activation_kwargs=activation_kwargs,
                     layer_norm=use_layer_norm,
                     layer_norm_kwargs=layer_norm_kwargs
                 )

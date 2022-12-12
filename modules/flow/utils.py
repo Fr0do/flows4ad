@@ -21,6 +21,6 @@ def get_flow_instace(flow_config):
     return flow_class(flow_config)
 
 
-def get_prior(config=None):
+def get_detector_prior(config=None):
     prior = dist.Normal(loc=0.0, scale=1.0)
     return prior
