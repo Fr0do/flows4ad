@@ -1,0 +1,53 @@
+procedure_config:
+  experiment_name:
+  random_seed: 42
+  gpu_index: 0
+
+  log_wandb: False
+  log_frequency: 10
+  output_dir: experiments/detector
+
+  save_model: False
+  save_metrics: True
+  plot_histograms: True
+
+
+dataset_config:
+  data_root: datasets/Classical
+  dataset_name: 44_Wilt
+
+
+detector_config:
+
+  embedding_config:
+    embedding_name: none
+    num_features:
+
+    num_dimensions: 8
+    variance: 1.0
+    trainable: True
+
+  flow_config:
+    flow_name: planar
+    num_features:
+    hidden_dim: 32
+    
+    num_flow_layers: 32
+    num_mlp_layers: 2
+    
+    use_layer_norm: True
+    use_batch_norm: True
+
+    use_channel_wise_splits: True
+    use_checkerboard_splits: True
+
+
+optimisation_config:
+  lr: 0.0006
+  min_lr: 0.000001
+  weight_decay: 0.0
+  
+  num_steps: 200
+  num_workers: 4
+  batch_size: 32
+  

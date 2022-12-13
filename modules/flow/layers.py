@@ -7,6 +7,7 @@ from ..basic import MultiLayerPerceptron
 
 
 class AffineCouplingLayer(nn.Module):
+
     def __init__(
         self, 
         d_embed: int, 
@@ -56,14 +57,21 @@ class AffineCouplingLayer(nn.Module):
         # and logarithm of jacobian (which equals to s)
         return x, scale
 
-class MaskedLinear(nn.Linear):
-    def __init__(self, in_features, out_features, bias=True):
-        super().__init__(in_features, out_features, bias)
-        self.register_buffer('mask', torch.ones(out_features, in_features))
+class MaskedLinear(nn.Module):
+    def __init__(self,
+                 in_features,
+                 out_features,
+                 mask,
+                 bias=True):
+        super().__init__()
+        self.linear = nn.Linear(in_features, out_features, bias)
+        self.register_buffer('mask', mask)
 
-    def set_mask(self, mask):
-        self.mask.data.copy_(torch.from_numpy(mask.astype(np.uint8).T))
+    def forward(self, inputs, cond_inputs=None):
+        output = F.linear(inputs, self.linear.weight * self.mask,
+                          self.linear.bias)
+        if cond_inputs is not None:
+            output += self.cond_linear(cond_inputs)
+        return output
 
-    def forward(self, input):
-        return F.linear(input, self.mask * self.weight, self.bias)
 
