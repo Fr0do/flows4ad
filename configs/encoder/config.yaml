@@ -3,7 +3,7 @@ dataset_config:
   dataset_name: 33_skin
 encoder_config:
   encoder_name: vae
-  encoder_type: autoenccoder
+  encoder_type: autoencoder
   hidden_dim: 64
   latent_dim: 8
   num_decoder_layers: 2

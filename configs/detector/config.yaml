@@ -1,5 +1,6 @@
 dataset_config:
   data_root: datasets/Classical
+  data_type: features
   dataset_name: 11_donors
 detector_config:
   embedding_config:
@@ -27,7 +28,7 @@ optimisation_config:
   weight_decay: 0.0
 procedure_config:
   experiment_name: null
-  gpu_index: 5
+  gpu_index: 0
   log_frequency: 10
   log_wandb: false
   output_dir: experiments/detector

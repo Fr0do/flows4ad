@@ -5,7 +5,7 @@ procedure_config:
   
   log_wandb: False
   log_frequency: 10
-  output_dir: experiments/encoder
+  output_dir: experiments/temp/encoder
   latents_root: datasets/VAELatents
 
   save_model: False
@@ -19,7 +19,7 @@ dataset_config:
 
 
 encoder_config:
-  encoder_type: autoenccoder
+  encoder_type: autoencoder
   encoder_name: vae
   
   num_encoder_layers: 2
