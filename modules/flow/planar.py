@@ -1,6 +1,8 @@
 import os
 import torch
 import torch.nn as nn
+from torch import Tensor
+from .flow import GeneralFlow
 
 class PlanarTransform(nn.Module):
     """Implementation of the invertible transformation used in planar flow:
@@ -8,7 +10,7 @@ class PlanarTransform(nn.Module):
     See Section 4.1 in https://arxiv.org/pdf/1505.05770.pdf. 
     """
 
-    def __init__(self, dim: int = 2):
+    def __init__(self, dim: int):
         """Initialise weights and bias.
         
         Args:
@@ -19,21 +21,21 @@ class PlanarTransform(nn.Module):
         self.b = nn.Parameter(torch.randn(1).normal_(0, 0.1))
         self.u = nn.Parameter(torch.randn(1, dim).normal_(0, 0.1))
 
-    def forward(self, z: Tensor):
+    def forward(self, z: Tensor, reverse=True):
         if torch.mm(self.u, self.w.T) < -1:
             self.get_u_hat()
+        x = z + self.u * nn.Tanh()(torch.mm(z, self.w.T) + self.b)
+        log_det = self.log_det(z)
+        return x, log_det
 
-        return z + self.u * nn.Tanh()(torch.mm(z, self.w.T) + self.b)
-
-    def log_det_J(self, z: Tensor):
+    def log_det(self, z: Tensor):
         if torch.mm(self.u, self.w.T) < -1:
             self.get_u_hat()
         a = torch.mm(z, self.w.T) + self.b
         psi = (1 - nn.Tanh()(a) ** 2) * self.w
         abs_det = (1 + torch.mm(self.u, psi.T)).abs()
         log_det = torch.log(1e-4 + abs_det)
-
-        return log_det
+        return log_det.view(z.shape[0], 1)
 
     def get_u_hat(self):
         """Enforce w^T u >= -1. When using h(.) = tanh(.), this is a sufficient condition 
@@ -58,4 +60,4 @@ class PlanarFlow(GeneralFlow):
         num_flow_layers = self.config.num_flow_layers
 
         layers = [PlanarTransform(d_embed) for _ in range(num_flow_layers)]
-        self.layers = nn.Sequential(*self.layers)
+        self.layers = nn.Sequential(*layers)
