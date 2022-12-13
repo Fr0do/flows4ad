@@ -48,7 +48,7 @@ def read_config(path):
 
 def save_config(config, path):
     with open(path, 'w', encoding='utf8') as outfile:
-        yaml.dump(config, outfile, default_flow_style=False, allow_unicode=True)
+        yaml.dump(config, outfile, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 
 def get_experiment_config():
@@ -92,6 +92,7 @@ def sync_experiment_config(config):
     if hasattr(config, 'detector_config'):
         experiment_name = '-'.join([
             f'dataset:{config.dataset_config.dataset_name}',
+            f'inputs:{config.dataset_config.data_type}',
             f'flow:{config.detector_config.flow_config.flow_name}',
             f'embedding:{config.detector_config.embedding_config.embedding_name}',
             f'hidden:{config.detector_config.flow_config.hidden_dim}',

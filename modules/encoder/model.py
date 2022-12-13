@@ -5,7 +5,7 @@ from ..autoencoder import get_autoencoder_instace
 
 
 encoder_type_to_function = {
-    'autoenccoder': get_autoencoder_instace
+    'autoencoder': get_autoencoder_instace
     # 'supervised_encoder': get_supervised_encoder
 }
 

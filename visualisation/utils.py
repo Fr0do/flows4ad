@@ -41,4 +41,13 @@ def save_performance_metrics(results, config, keys=None):
         metrics_path = os.path.join(config.procedure_config.output_dir, "metrics.csv")
         
         metrics = pd.DataFrame({key: results[key] for key in keys}, index=[0])
+        
+        metrics['dataset_name'] = [config.dataset_config.dataset_name]
+        metrics['data_type'] = [config.dataset_config.data_type]
+        
+        metrics['flow_name'] = [config.detector_config.flow_config.flow_name]
+        metrics['embedding_name'] = [config.detector_config.embedding_config.embedding_name]
+        
+        metrics['hidden_dim'] = [config.detector_config.flow_config.hidden_dim]
+        
         metrics.to_csv(metrics_path)
