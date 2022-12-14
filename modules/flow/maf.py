@@ -1,10 +1,4 @@
-import torch
-import numpy as np
 import torch.nn as nn
-
-from torch import Tensor
-from typing import List, Optional
-from numpy.random import permutation, randint
 
 from .flow import GeneralFlow
 from .layers import MAFLayer
@@ -12,6 +6,7 @@ from ..basic import MovingBatchNorm1d
 
 
 class MAF(GeneralFlow):
+
     def __init__(self, config):
         super().__init__()
         self.config = config

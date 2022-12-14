@@ -10,8 +10,7 @@ flow_name_to_class = {
     'real_nvp': RealNVP,
     'glow': Glow,
     'planar': PlanarFlow,
-    'maf': MAF,
-    # 'some_other_flow_name': some_other_flow_class,
+    'maf': MAF
 }
 
 

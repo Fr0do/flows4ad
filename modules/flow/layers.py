@@ -63,6 +63,7 @@ class AffineCouplingLayer(nn.Module):
         # and logarithm of jacobian (which equals to s)
         return x, scale
 
+# adapted from https://github.com/e-hulten/maf/blob/master/maf_layer.py
 
 class MaskedLinear(nn.Linear):
     """Linear transformation with masked out elements. y = x.dot(mask*W.T) + b"""
@@ -87,6 +88,7 @@ class MaskedLinear(nn.Linear):
 
 
 class MADE(nn.Module):
+
     def __init__(
         self,
         d_in: int,
@@ -223,6 +225,7 @@ class MAFLayer(nn.Module):
             u = u.flip(dims=(1,)) if self.inverse else u
             log_det = 0.5 * torch.sum(logp, dim=1, keepdims=True)
         else:
+            # will fail:(
             x = x.flip(dims=(1,)) if self.inverse else x
             u = torch.zeros_like(x)
             for dim in range(self.dim):
