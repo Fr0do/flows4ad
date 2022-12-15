@@ -1,0 +1,39 @@
+procedure_config:
+  experiment_name: null
+  random_seed: 42
+  gpu_index: 0
+  log_wandb: false
+  log_frequency: 10
+  output_dir: experiments/final/detector
+  save_model: false
+  save_metrics: true
+  plot_histograms: true
+dataset_config:
+  data_root: datasets/VAELatents
+  data_type: latents
+  dataset_name: 11_donors
+detector_config:
+  embedding_config:
+    embedding_name: none
+    num_features: null
+    num_dimensions: 8
+    variance: 1.0
+    trainable: true
+  flow_config:
+    flow_name: glow
+    num_features: null
+    hidden_dim: 32
+    num_flow_layers: 8
+    num_mlp_layers: 2
+    use_layer_norm: true
+    use_batch_norm: true
+    use_channel_wise_splits: true
+    use_checkerboard_splits: true
+    is_inverse_made: false
+optimisation_config:
+  lr: 0.001
+  min_lr: 1.0e-05
+  weight_decay: 0.0
+  num_steps: 200
+  num_workers: 4
+  batch_size: 32
