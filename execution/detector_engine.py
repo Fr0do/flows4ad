@@ -20,7 +20,7 @@ def train_step(model, x, loss_fn, optimizer, device='cpu', clip_grad: float = No
     loss.backward()
     optimizer.step()
     if clip_grad is not None:
-        clip_grad_norm_(model, clip_grad)
+        clip_grad_norm_(model.parameters(), clip_grad)
     return loss.item()
 
 
@@ -65,6 +65,7 @@ def estimate_ad_performance(model, train_loader, val_loader, prior, device='cpu'
         for i, (x,) in enumerate(loader):
             x = x.to(device)
             z, log_det = model(x, reverse=True)
+            z = torch.nan_to_num(z, nan=0.0, posinf=0.0, neginf=0.0)
             # high log_prob shoud correspond to class 0, low to 1
             log_prob = (prior.log_prob(z) + log_det).sum(dim=-1)
             y_pred.append(-log_prob.cpu().numpy())
