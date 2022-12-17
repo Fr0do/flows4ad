@@ -4,7 +4,7 @@ import subprocess
 os.environ['WANDB_ENTITY'] = 'flows4ad'
 os.environ['WANDB_PROJECT'] = 'flows4ad'
 
-run_config_path = './configs/detector/47_yeast/features/maf_config.yaml'
+run_config_path = f'./configs/detector/_reference_config.yaml'
 
 subprocess.call([
     'python', 'train_detector_optuna.py', 

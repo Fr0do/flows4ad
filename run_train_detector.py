@@ -5,7 +5,7 @@ import subprocess
 
 sys.path.append('..')
 
-current_config_path = f'./configs/detector/11_donors/features/maf_config.yaml'
+current_config_path = f'./configs/detector/_reference_config.yaml'
 
 subprocess.call([
     'python', 'train_detector.py', 
