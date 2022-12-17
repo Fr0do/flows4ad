@@ -47,7 +47,7 @@ pip install optuna
 In order to train VAE launch `run_train_encoder.py` script with the 
 specific `.yaml` config (look at the example in `configs/encoder/_reference_config.yaml`).
 
-In order to train flow for AD detection launch `run_train_encoder.py` script with the
+In order to train flow for AD detection launch `run_train_detector.py` script with the
 specific `.yaml` config (look at the example in `configs/detector/_reference_config.yaml`).
 In order to change parameters of experiment edit the config file.
 
