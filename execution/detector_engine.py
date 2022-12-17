@@ -4,13 +4,14 @@ import numpy as np
 
 from tqdm import tqdm
 from sklearn.metrics import roc_auc_score
+from torch.nn.utils import clip_grad_norm_
 from .utils import make_stepwise_generator, make_drop_last_false_loader
 
 
 __all__ = ["train_step", "train_epoch", "eval_epoch", "train"]
 
 
-def train_step(model, x, loss_fn, optimizer, device='cpu'):
+def train_step(model, x, loss_fn, optimizer, device='cpu', clip_grad: float = None):
     model.train()
     x = x.to(device)
     z, log_det = model(x, reverse=True)
@@ -18,6 +19,8 @@ def train_step(model, x, loss_fn, optimizer, device='cpu'):
     optimizer.zero_grad(set_to_none=True)
     loss.backward()
     optimizer.step()
+    if clip_grad is not None:
+        clip_grad_norm_(model.parameters(), clip_grad)
     return loss.item()
 
 
@@ -62,6 +65,7 @@ def estimate_ad_performance(model, train_loader, val_loader, prior, device='cpu'
         for i, (x,) in enumerate(loader):
             x = x.to(device)
             z, log_det = model(x, reverse=True)
+            z = torch.nan_to_num(z, nan=0.0, posinf=0.0, neginf=0.0)
             # high log_prob shoud correspond to class 0, low to 1
             log_prob = (prior.log_prob(z) + log_det).sum(dim=-1)
             y_pred.append(-log_prob.cpu().numpy())
@@ -80,7 +84,8 @@ def train(
     device: str = 'cpu',
     log_wandb: bool = False,
     log_frequency: int = 50,
-    tqdm_bar: bool = False
+    tqdm_bar: bool = False,
+    clip_grad: float = None
 ):
     train_losses, test_losses = [], []
     progress_bar = tqdm(range(1, steps + 1)) if tqdm_bar else range(1, steps + 1)
@@ -92,7 +97,7 @@ def train(
     for step in progress_bar:
         # make train step
         (x,) = next(iter(train_generator))
-        train_loss = train_step(model, x, loss_fn, optimizer, device)
+        train_loss = train_step(model, x, loss_fn, optimizer, device, clip_grad)
         # update loss history
         train_losses += [train_loss]
         running_train_losses += [train_loss]

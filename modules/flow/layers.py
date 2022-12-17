@@ -1,18 +1,16 @@
 import os
 import torch
+import numpy as np
 import torch.nn as nn
+
 from torch import Tensor
 from torch.nn import functional as F
-
-import numpy as np
+from typing import List, Tuple, Optional
 from numpy.random import permutation, randint
 
-from typing import List, Tuple, Optional
-
 from .masks import *
-from ..basic import MultiLayerPerceptron
+from ..basic import MultiLayerPerceptron, get_activation_class
 
-torch.autograd.set_detect_anomaly(True)
 
 class AffineCouplingLayer(nn.Module):
 
@@ -65,17 +63,19 @@ class AffineCouplingLayer(nn.Module):
         # and logarithm of jacobian (which equals to s)
         return x, scale
 
+# adapted from https://github.com/e-hulten/maf/blob/master/maf_layer.py
+
 class MaskedLinear(nn.Linear):
     """Linear transformation with masked out elements. y = x.dot(mask*W.T) + b"""
 
-    def __init__(self, n_in: int, n_out: int, bias: bool = True) -> None:
+    def __init__(self, d_in: int, d_out: int, bias: bool = True) -> None:
         """
         Args:
-            n_in: Size of each input sample.
-            n_out:Size of each output sample.
+            d_in: Size of each input sample.
+            d_out:Size of each output sample.
             bias: Whether to include additive bias. Default: True.
         """
-        super().__init__(n_in, n_out, bias)
+        super().__init__(d_in, d_out, bias)
         self.register_buffer('mask', torch.zeros_like(self.weight))
 
     def initialise_mask(self, mask: Tensor):
@@ -86,19 +86,23 @@ class MaskedLinear(nn.Linear):
         """Apply masked linear transformation."""
         return F.linear(x, self.mask * self.weight, self.bias)
 
+
 class MADE(nn.Module):
+
     def __init__(
         self,
-        n_in: int,
+        d_in: int,
         hidden_dims: List[int],
-        gaussian: bool=False,
-        random_order: bool=False,
-        seed: Optional[int]=None,
+        gaussian: bool = False,
+        random_order: bool = False,
+        seed: Optional[int] = None,
+        activation: str = 'relu',
+        activation_kwargs: dict = {},
     ):
         """Initalise MADE model.
     
         Args:
-            n_in: Size of input.
+            d_in: Size of input.
             hidden_dims: List with sizes of the hidden layers.
             gaussian: Whether to use Gaussian MADE. Default: False.
             random_order: Whether to use random order. Default: False.
@@ -107,8 +111,8 @@ class MADE(nn.Module):
         super().__init__()
         # Set random seed.
         np.random.seed(seed)
-        self.n_in = n_in
-        self.n_out = 2 * n_in if gaussian else n_in
+        self.d_in = d_in
+        self.d_out = 2 * d_in if gaussian else d_in
         self.hidden_dims = hidden_dims
         self.random_order = random_order
         self.gaussian = gaussian
@@ -116,12 +120,15 @@ class MADE(nn.Module):
         self.mask_matrix = []
         self.layers = []
 
+        if isinstance(activation, str):
+            activation = get_activation_class(activation)(**activation_kwargs)
+
         # List of layers sizes.
-        dim_list = [self.n_in, *hidden_dims, self.n_out]
+        dim_list = [self.d_in, *hidden_dims, self.d_out]
         # Make layers and activation functions.
         for i in range(len(dim_list) - 2):
             self.layers.append(MaskedLinear(dim_list[i], dim_list[i + 1]),)
-            self.layers.append(nn.ReLU())
+            self.layers.append(activation)
         # Hidden layer to output layer.
         self.layers.append(MaskedLinear(dim_list[-2], dim_list[-1]))
         # Create model.
@@ -142,7 +149,7 @@ class MADE(nn.Module):
         """Create masks for the hidden layers."""
         # Define some constants for brevity.
         L = len(self.hidden_dims)
-        D = self.n_in
+        D = self.d_in
 
         # Whether to use random or natural ordering of the inputs.
         self.masks[0] = permutation(D) if self.random_order else np.arange(D)
@@ -183,7 +190,15 @@ class MADE(nn.Module):
 
 
 class MAFLayer(nn.Module):
-    def __init__(self, dim: int, hidden_dims: List[int], inverse: bool):
+
+    def __init__(
+        self, 
+        dim: int, 
+        hidden_dims: List[int], 
+        inverse: bool,
+        activation: str = 'relu',
+        activation_kwargs: dict = {},
+    ):
         """
         Args:
             dim: Dimension of input. E.g.: dim = 784 when using MNIST.
@@ -192,7 +207,14 @@ class MAFLayer(nn.Module):
         """
         super().__init__()
         self.dim = dim
-        self.made = MADE(dim, hidden_dims, gaussian=True, seed=None)
+        self.made = MADE(
+            dim, 
+            hidden_dims, 
+            gaussian=True, 
+            seed=None, 
+            activation=activation, 
+            activation_kwargs=activation_kwargs
+        )
         self.inverse = inverse
 
     def forward(self, x: Tensor, reverse=False) -> Tuple[Tensor, Tensor]:
@@ -203,6 +225,7 @@ class MAFLayer(nn.Module):
             u = u.flip(dims=(1,)) if self.inverse else u
             log_det = 0.5 * torch.sum(logp, dim=1, keepdims=True)
         else:
+            # will fail:(
             x = x.flip(dims=(1,)) if self.inverse else x
             u = torch.zeros_like(x)
             for dim in range(self.dim):
@@ -212,5 +235,3 @@ class MAFLayer(nn.Module):
                 u[:, dim] = mu[:, dim] + x[:, dim] * torch.exp(mod_logp[:, dim])
             log_det = torch.sum(mod_logp, axis=1, keepdims=True)
         return u, log_det
-
-
