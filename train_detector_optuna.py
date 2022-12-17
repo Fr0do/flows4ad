@@ -34,14 +34,14 @@ from functools import partial
 
 def objective(trial: optuna.trial.Trial, environment, config):
     # model params
-    num_layers = trial.suggest_int("num_layers", 2, 12, step=1)
+    num_layers = trial.suggest_int("num_layers", 4, 20, step=4)
     hidden_dim = trial.suggest_int("hidden_dim", 32, 512, step=32)
     num_mlp_layers = trial.suggest_int("num_mlp_layers", 2, 3, step=1)
     activation = trial.suggest_categorical("activation", ["relu", "gelu", "tanh"])
     # optimisation params
-    num_steps = trial.suggest_int("num_steps", 100, 200, step=20)
+    num_steps = trial.suggest_int("num_steps", 100, 800, step=50)
     batch_size = trial.suggest_int("batch_size", 8, 256, log=True)
-    lr = trial.suggest_float("lr", 1e-5, 1e-3)
+    lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
     weight_decay = trial.suggest_float("weight_decay", 1e-6, 1e-2, log=True)
     # edit model config
     config.detector_config.flow_config.num_layers = num_layers
