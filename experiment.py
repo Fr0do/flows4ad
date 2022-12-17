@@ -71,7 +71,8 @@ def run_detector_experiment(environment, config):
         loss_fn=loss,
         device=device,
         log_frequency=config.procedure_config.log_frequency,
-        log_wandb=config.procedure_config.log_wandb
+        log_wandb=config.procedure_config.log_wandb,
+        clip_grad=getattr(config.optimisation_config, 'clip_grad', None)
     )
 
     return results

@@ -58,9 +58,16 @@ def get_experiment_config():
         type=str,
         help='Configuration file for experiment.'
     )
+    parser.add_argument(
+        '--num_trials', 
+        type=int,
+        default=None,
+        help='Number of Optuna trials.'
+    )
 
     options = parser.parse_args()
     config = RecursiveNamespace(read_config(options.run_config_path))
+    config.num_trials = options.num_trials
     return config
 
 
