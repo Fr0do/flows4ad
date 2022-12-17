@@ -15,14 +15,17 @@ class MAF(GeneralFlow):
     def init_layers(self):
         d_embed = self.config.num_features
         d_hidden = self.config.hidden_dim
+        
         is_inverse_made = self.config.is_inverse_made
+        
         num_flow_layers = self.config.num_flow_layers
         num_mlp_layers = self.config.num_mlp_layers
+        
         use_batch_norm = self.config.use_batch_norm
+        batch_norm_kwargs = getattr(self.config, 'batch_norm_kwargs', {})
+
         activation = getattr(self.config, 'activation', 'relu')
         activation_kwargs = getattr(self.config, 'activation_kwargs', {})
-
-        batch_norm_kwargs = {}
 
         layers = []
         for _ in range(num_flow_layers):
