@@ -54,3 +54,6 @@ In order to change parameters of experiment edit the config file.
 In order to run training with hyperparam search launch `run_train_detector_optuna.py`.
 
 For RealNVP it is necessary to choose either `channel_wise` or `checkerboard` split or both.
+
+### Results and report
+[materials](materials) contains results discussed in [report](materials/flows4ad.pdf).
